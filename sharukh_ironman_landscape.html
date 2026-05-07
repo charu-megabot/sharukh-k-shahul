@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sharukh K. Shahul · IT Professional · HUD</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700;800;900&family=Michroma&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold:       #ffa500;
+  --gold-light: #ffd060;
+  --gold-dim:   #b87333;
+  --red:        #cc1111;
+  --red-bright: #ff2222;
+  --red-dim:    #7a0000;
+  --arc:        #4fc3f7;
+  --arc-bright: #a8e6ff;
+  --arc-glow:   rgba(79,195,247,0.35);
+  --hud-green:  #00e5a0;
+  --bg:         #060404;
+  --bg2:        rgba(20,4,4,0.95);
+  --bg3:        rgba(30,8,4,0.90);
+  --panel:      rgba(140,20,0,0.10);
+  --panel2:     rgba(255,165,0,0.07);
+  --border-red: rgba(200,30,10,0.4);
+  --border-gold:rgba(255,165,0,0.35);
+  --text:       #f0dcc0;
+  --text-dim:   #9a7050;
+  --sidebar-w:  320px;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+
+body{
+  font-family:'Exo 2',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  height:100vh;
+  overflow:hidden;
+  cursor:crosshair;
+  display:flex;
+  flex-direction:column;
+}
+
+/* ── BOOT SCREEN ── */
+#boot{
+  position:fixed;inset:0;z-index:9999;
+  background:#000;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:24px;
+  animation:bootFade 0.5s ease 3.2s forwards;
+}
+@keyframes bootFade{to{opacity:0;pointer-events:none;visibility:hidden;}}
+.boot-logo{
+  font-family:'Michroma',sans-serif;font-size:2.4rem;color:var(--gold);
+  letter-spacing:8px;text-shadow:0 0 30px var(--gold),0 0 60px rgba(255,165,0,0.4);
+  animation:bootGlow 0.4s ease 0.2s both;
+}
+@keyframes bootGlow{from{opacity:0;letter-spacing:20px;}to{opacity:1;letter-spacing:8px;}}
+.boot-sub{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--arc);letter-spacing:4px;animation:fadeIn 0.4s ease 0.8s both;}
+.boot-bar-wrap{width:300px;height:3px;background:rgba(255,165,0,0.15);border:1px solid rgba(255,165,0,0.3);overflow:hidden;animation:fadeIn 0.3s ease 1s both;}
+.boot-bar{height:100%;background:linear-gradient(90deg,var(--red),var(--gold));width:0;animation:bootLoad 1.8s ease 1.2s forwards;box-shadow:0 0 12px var(--gold);}
+@keyframes bootLoad{to{width:100%;}}
+.boot-lines{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,165,0,0.5);text-align:left;width:300px;animation:fadeIn 0.3s ease 1.2s both;}
+.boot-line{opacity:0;animation:lineIn 0.2s ease forwards;}
+.boot-line:nth-child(1){animation-delay:1.3s;}
+.boot-line:nth-child(2){animation-delay:1.6s;}
+.boot-line:nth-child(3){animation-delay:1.9s;}
+.boot-line:nth-child(4){animation-delay:2.2s;}
+@keyframes lineIn{to{opacity:1;}}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+
+/* ── BACKGROUND ── */
+.bg-layers{position:fixed;inset:0;z-index:0;pointer-events:none;}
+.bg-hex{
+  position:absolute;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='52'%3E%3Cpolygon points='30,2 58,17 58,35 30,50 2,35 2,17' fill='none' stroke='rgba(200,80,0,0.06)' stroke-width='1'/%3E%3C/svg%3E");
+  background-size:60px 52px;
+  animation:hexDrift 40s linear infinite;
+}
+@keyframes hexDrift{0%{background-position:0 0;}100%{background-position:120px 104px;}}
+.bg-glow1{position:absolute;top:-20%;left:-10%;width:70%;height:70%;background:radial-gradient(ellipse,rgba(180,20,0,0.08) 0%,transparent 65%);animation:orb1 12s ease-in-out infinite alternate;}
+.bg-glow2{position:absolute;bottom:-20%;right:-10%;width:60%;height:60%;background:radial-gradient(ellipse,rgba(255,140,0,0.06) 0%,transparent 65%);animation:orb1 16s ease-in-out 4s infinite alternate;}
+@keyframes orb1{from{transform:translate(0,0);}to{transform:translate(30px,-20px);}}
+.scanline{position:fixed;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px);}
+.sweep{position:fixed;left:0;right:0;height:3px;z-index:2;pointer-events:none;top:-3px;background:linear-gradient(90deg,transparent,rgba(255,165,0,0.3),rgba(255,60,0,0.4),rgba(255,165,0,0.3),transparent);animation:sweepDown 8s linear 3.5s infinite;box-shadow:0 0 12px rgba(255,165,0,0.4);}
+@keyframes sweepDown{0%{top:-3px;opacity:0;}2%{opacity:1;}98%{opacity:0.4;}100%{top:100vh;opacity:0;}}
+
+/* CORNER HUD */
+.hud-corner{position:fixed;z-index:3;pointer-events:none;width:60px;height:60px;}
+.hud-corner.tl{top:0;left:0;border-top:2px solid var(--gold);border-left:2px solid var(--gold);}
+.hud-corner.tr{top:0;right:0;border-top:2px solid var(--gold);border-right:2px solid var(--gold);}
+.hud-corner.bl{bottom:0;left:0;border-bottom:2px solid var(--gold);border-left:2px solid var(--gold);}
+.hud-corner.br{bottom:0;right:0;border-bottom:2px solid var(--gold);border-right:2px solid var(--gold);}
+.hud-corner::before{content:attr(data-label);position:absolute;font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(255,165,0,0.5);letter-spacing:2px;}
+.hud-corner.tl::before{top:6px;left:8px;}
+.hud-corner.tr::before{top:6px;right:8px;}
+.hud-corner.bl::before{bottom:6px;left:8px;}
+.hud-corner.br::before{bottom:6px;right:8px;}
+
+/* HUD TOP BAR */
+.hud-topbar{
+  position:relative;z-index:10;
+  height:36px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 70px;
+  border-bottom:1px solid rgba(255,165,0,0.15);
+  background:rgba(6,4,4,0.85);
+  backdrop-filter:blur(4px);
+}
+.hud-topbar-left,.hud-topbar-right{display:flex;align-items:center;gap:16px;font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,165,0,0.45);letter-spacing:2px;}
+.hud-indicator{display:flex;align-items:center;gap:6px;}
+.hud-dot{width:6px;height:6px;border-radius:50%;background:var(--hud-green);box-shadow:0 0 8px var(--hud-green);animation:blink 2s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.hud-center{font-family:'Michroma',sans-serif;font-size:12px;color:var(--gold);letter-spacing:5px;text-shadow:0 0 10px rgba(255,165,0,0.4);}
+
+/* ── LANDSCAPE LAYOUT ── */
+.landscape{
+  display:flex;
+  flex:1;
+  overflow:hidden;
+  position:relative;z-index:10;
+}
+
+/* ── LEFT SIDEBAR ── */
+.sidebar{
+  width:var(--sidebar-w);
+  flex-shrink:0;
+  background:var(--bg2);
+  border-right:1px solid var(--border-gold);
+  display:flex;
+  flex-direction:column;
+  overflow-y:auto;
+  overflow-x:hidden;
+  position:relative;
+  opacity:0;
+  animation:sideIn 0.7s ease 3.4s forwards;
+}
+@keyframes sideIn{from{opacity:0;transform:translateX(-30px);}to{opacity:1;transform:translateX(0);}}
+
+/* sidebar accent bar top */
+.sidebar::before{
+  content:'';
+  position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,transparent,var(--red),var(--gold),var(--red-bright),var(--gold-light),transparent);
+  animation:scanBar 4s linear infinite;
+}
+@keyframes scanBar{0%,100%{opacity:0.6;}50%{opacity:1;}}
+
+/* sidebar scrollbar */
+.sidebar::-webkit-scrollbar{width:4px;}
+.sidebar::-webkit-scrollbar-track{background:transparent;}
+.sidebar::-webkit-scrollbar-thumb{background:rgba(255,165,0,0.3);border-radius:2px;}
+
+/* PROFILE SECTION */
+.profile-sec{
+  padding:28px 24px 20px;
+  display:flex;flex-direction:column;align-items:center;
+  text-align:center;
+  border-bottom:1px solid rgba(255,165,0,0.1);
+}
+
+/* arc reactor photo */
+.arc-container{position:relative;width:150px;height:150px;flex-shrink:0;margin-bottom:16px;}
+.arc-ring{position:absolute;border-radius:50%;border:1px solid rgba(255,165,0,0.3);}
+.arc-ring.r1{inset:-16px;animation:spinRing 12s linear infinite;}
+.arc-ring.r2{inset:-10px;animation:spinRing 8s linear infinite reverse;border-color:rgba(204,17,17,0.3);}
+.arc-ring.r3{inset:-22px;border:2px dashed rgba(255,165,0,0.12);animation:spinRing 20s linear infinite;}
+.arc-ring.r1::before,.arc-ring.r1::after{content:'';position:absolute;top:50%;left:-4px;width:8px;height:2px;background:var(--gold);transform:translateY(-50%);box-shadow:0 0 6px var(--gold);}
+.arc-ring.r1::after{left:auto;right:-4px;}
+@keyframes spinRing{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+.arc-glow-ring{position:absolute;inset:-4px;border-radius:50%;background:radial-gradient(circle,rgba(79,195,247,0.15) 0%,transparent 60%);animation:glowPulse 2.5s ease-in-out infinite;}
+@keyframes glowPulse{0%,100%{opacity:0.6;transform:scale(1);}50%{opacity:1;transform:scale(1.05);}}
+.photo-frame{width:150px;height:150px;border-radius:50%;overflow:hidden;border:2px solid var(--gold);position:relative;box-shadow:0 0 0 4px rgba(255,165,0,0.15),0 0 30px rgba(255,100,0,0.3),0 0 60px rgba(200,20,0,0.2),inset 0 0 20px rgba(0,0,0,0.6);cursor:default;}
+.photo-frame img{width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.4s ease,filter 0.4s;}
+.photo-frame:hover img{transform:scale(1.08);filter:brightness(1.1);}
+.photo-overlay{position:absolute;inset:0;border-radius:50%;background:rgba(20,4,0,0.8);display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;transition:opacity 0.3s;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--gold);gap:4px;text-align:center;}
+.photo-frame:hover .photo-overlay{opacity:1;}
+.photo-overlay-icon{font-size:20px;}
+#photo-input{display:none;}
+.arc-core{position:absolute;bottom:4px;right:4px;width:16px;height:16px;border-radius:50%;background:radial-gradient(circle,var(--arc-bright),var(--arc));box-shadow:0 0 12px var(--arc),0 0 24px var(--arc-glow);animation:arcPulse 2s ease-in-out infinite;border:1px solid rgba(255,255,255,0.4);z-index:5;}
+@keyframes arcPulse{0%,100%{box-shadow:0 0 8px var(--arc),0 0 20px var(--arc-glow);}50%{box-shadow:0 0 16px var(--arc-bright),0 0 40px var(--arc-glow),0 0 60px rgba(79,195,247,0.2);}}
+
+.sys-label{font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,165,0,0.5);letter-spacing:3px;margin-bottom:5px;}
+.name{font-family:'Michroma',sans-serif;font-size:1.25rem;font-weight:400;line-height:1.1;letter-spacing:2px;background:linear-gradient(135deg,var(--gold-light) 0%,var(--gold) 40%,var(--red-bright) 80%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px;animation:nameGlitch 0.9s ease 3.6s both;}
+@keyframes nameGlitch{0%{opacity:0;transform:translateX(-10px);filter:blur(6px);}20%{opacity:0.9;transform:translateX(5px) skewX(-3deg);filter:blur(0);}40%{transform:translateX(-3px) skewX(1deg);}60%{transform:translateX(2px);}80%{transform:translateX(-1px);}100%{opacity:1;transform:translateX(0);}}
+.name:hover{animation:ironGlitch 0.4s steps(3) forwards;-webkit-text-fill-color:transparent;}
+@keyframes ironGlitch{0%{filter:drop-shadow(3px 0 var(--red)) drop-shadow(-3px 0 var(--gold));}33%{filter:drop-shadow(-3px 0 var(--red-bright)) drop-shadow(3px 0 var(--gold-light));}66%{filter:drop-shadow(2px 0 var(--arc)) drop-shadow(-2px 0 var(--gold));}100%{filter:none;}}
+
+.role-badge{display:inline-flex;align-items:center;gap:8px;padding:5px 12px;border:1px solid var(--border-gold);background:rgba(255,165,0,0.07);font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:2px;margin-bottom:14px;border-radius:1px;animation:badgePulse 3s ease-in-out infinite,fadeSlideUp 0.5s ease 4s both;}
+@keyframes badgePulse{0%,100%{box-shadow:none;border-color:rgba(255,165,0,0.3);}50%{box-shadow:0 0 14px rgba(255,165,0,0.25),inset 0 0 8px rgba(255,165,0,0.05);border-color:rgba(255,165,0,0.7);}}
+.role-badge::before{content:'▶';font-size:6px;color:var(--red-bright);animation:blink 1s ease-in-out infinite;}
+@keyframes fadeSlideUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+
+.status-bar{display:flex;align-items:center;gap:10px;padding:7px 14px;background:rgba(0,229,160,0.05);border:1px solid rgba(0,229,160,0.2);border-radius:1px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--hud-green);width:fit-content;animation:fadeSlideUp 0.5s ease 4.2s both;}
+
+/* CONTACT LIST IN SIDEBAR */
+.contacts-sec{padding:16px 24px;border-bottom:1px solid rgba(255,165,0,0.08);}
+.contact-item{display:flex;align-items:center;gap:8px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-dim);transition:color 0.2s;margin-bottom:8px;}
+.contact-item:last-child{margin-bottom:0;}
+.contact-item:hover{color:var(--gold);}
+.ci{color:var(--gold);font-size:12px;width:16px;text-align:center;}
+
+/* NAV TABS */
+.nav-tabs{display:flex;flex-direction:column;padding:12px 0;border-bottom:1px solid rgba(255,165,0,0.08);}
+.nav-tab{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 24px;
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--text-dim);letter-spacing:2px;
+  cursor:pointer;transition:all 0.25s;
+  border-left:3px solid transparent;
+  position:relative;
+}
+.nav-tab:hover,.nav-tab.active{color:var(--gold);border-left-color:var(--gold);background:rgba(255,165,0,0.05);}
+.nav-tab.active::after{content:'◀';position:absolute;right:16px;font-size:8px;color:var(--red-bright);}
+.nav-tab-ico{font-size:13px;width:20px;text-align:center;}
+
+/* SIDEBAR BOTTOM SUMMARY */
+.sidebar-summary{padding:16px 24px;flex:1;}
+.sidebar-summary p{font-size:11px;line-height:1.75;color:var(--text-dim);}
+
+/* ── MAIN CONTENT AREA ── */
+.main{
+  flex:1;
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding:20px 28px;
+  opacity:0;
+  animation:mainIn 0.7s ease 3.6s forwards;
+}
+@keyframes mainIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+
+.main::-webkit-scrollbar{width:4px;}
+.main::-webkit-scrollbar-track{background:transparent;}
+.main::-webkit-scrollbar-thumb{background:rgba(255,165,0,0.3);border-radius:2px;}
+
+/* CONTENT PANELS (shown/hidden by tabs) */
+.content-panel{display:none;}
+.content-panel.active{display:block;}
+
+/* ── SECTION HEADER ── */
+.sh{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+.sh-icon{width:32px;height:32px;background:rgba(200,30,0,0.12);border:1px solid rgba(200,30,0,0.35);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:14px;transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1),box-shadow 0.3s;}
+.sh-title{font-family:'Michroma',sans-serif;font-size:11px;color:var(--gold);letter-spacing:3px;text-transform:uppercase;}
+.sh-line{flex:1;height:1px;background:linear-gradient(90deg,rgba(255,165,0,0.35),transparent);}
+
+/* ── CARDS ── */
+.card{
+  background:var(--bg3);
+  border:1px solid var(--border-red);
+  border-radius:2px;
+  padding:22px;
+  position:relative;overflow:hidden;
+  margin-bottom:16px;
+  transition:border-color 0.3s,box-shadow 0.3s,transform 0.3s;
+}
+.card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--red-bright),var(--gold),var(--red));}
+.card::after{content:'';position:absolute;top:-100%;left:0;right:0;height:50%;background:linear-gradient(180deg,transparent,rgba(255,100,0,0.04) 50%,transparent);transition:top 0.6s ease;pointer-events:none;}
+.card:hover::after{top:120%;}
+.card:hover{border-color:rgba(255,165,0,0.55);box-shadow:0 0 30px rgba(255,100,0,0.08),0 6px 24px rgba(0,0,0,0.5);transform:translateY(-2px);}
+.c-tl,.c-br{position:absolute;width:12px;height:12px;}
+.c-tl{top:5px;left:5px;border-top:1px solid var(--gold);border-left:1px solid var(--gold);}
+.c-br{bottom:5px;right:5px;border-bottom:1px solid var(--gold);border-right:1px solid var(--gold);}
+
+/* ── SKILLS ── */
+.skill-group{margin-bottom:14px;}
+.sg-title{font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(204,17,17,0.8);letter-spacing:2px;text-transform:uppercase;margin-bottom:7px;}
+.tags{display:flex;flex-wrap:wrap;gap:6px;}
+.tag{padding:4px 10px;background:rgba(180,30,0,0.1);border:1px solid rgba(200,60,0,0.3);border-radius:1px;font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,180,80,0.85);transition:all 0.25s ease;position:relative;overflow:hidden;cursor:default;}
+.tag::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(255,165,0,0.25) 0%,transparent 65%);opacity:0;transition:opacity 0.3s;}
+.tag:hover::after{opacity:1;}
+.tag:hover{background:rgba(255,100,0,0.18);border-color:var(--gold);color:var(--gold-light);box-shadow:0 0 10px rgba(255,165,0,0.25);transform:translateY(-2px) scale(1.05);}
+
+/* ── TWO-COL GRID ── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+
+/* ── EXPERIENCE ── */
+.exp-item{margin-bottom:22px;}
+.exp-item:last-child{margin-bottom:0;}
+.exp-role{font-family:'Michroma',sans-serif;font-size:13px;color:var(--gold-light);margin-bottom:5px;}
+.exp-meta{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+.exp-co{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--gold);}
+.exp-dt{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-dim);padding:2px 8px;background:rgba(255,165,0,0.06);border:1px solid rgba(255,165,0,0.2);border-radius:1px;}
+.exp-active{padding:2px 10px;background:rgba(0,229,160,0.07);border:1px solid rgba(0,229,160,0.3);font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--hud-green);display:flex;align-items:center;gap:5px;border-radius:1px;}
+.exp-active::before{content:'●';font-size:6px;animation:blink 1.5s ease-in-out infinite;}
+.exp-pts{list-style:none;}
+.exp-pts li{padding:4px 0 4px 16px;position:relative;font-size:12px;color:var(--text-dim);line-height:1.6;transition:color 0.2s;}
+.exp-pts li::before{content:'▶';position:absolute;left:0;color:var(--red-bright);font-size:7px;top:7px;transition:transform 0.2s,color 0.2s;}
+.exp-pts li:hover::before{transform:translateX(3px);color:var(--gold);}
+.exp-pts li:hover{color:var(--text);}
+.divider{height:1px;margin:14px 0;background:linear-gradient(90deg,transparent,rgba(255,165,0,0.25),var(--red-dim),rgba(255,165,0,0.25),transparent);}
+
+/* ── EDUCATION ── */
+.edu-item{padding:16px;background:rgba(180,30,0,0.07);border:1px solid rgba(200,60,0,0.2);border-radius:2px;transition:all 0.3s;margin-bottom:12px;}
+.edu-item:last-child{margin-bottom:0;}
+.edu-item:hover{border-color:var(--gold);box-shadow:0 0 16px rgba(255,165,0,0.08);}
+.edu-deg{font-family:'Michroma',sans-serif;font-size:11px;color:var(--gold-light);margin-bottom:4px;}
+.edu-inst{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--gold);margin-bottom:6px;}
+.edu-cgpa{display:inline-block;padding:2px 9px;background:rgba(255,165,0,0.08);border:1px solid rgba(255,165,0,0.3);font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--gold);border-radius:1px;}
+.edu-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px;}
+.edu-tag{padding:2px 7px;background:rgba(180,30,0,0.08);border:1px solid rgba(200,60,0,0.15);font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim);border-radius:1px;}
+
+/* ── CERTS ── */
+.cert-item{display:flex;align-items:flex-start;gap:12px;padding:12px;background:rgba(180,30,0,0.06);border:1px solid rgba(200,60,0,0.18);border-radius:2px;margin-bottom:10px;transition:all 0.3s ease;position:relative;overflow:hidden;}
+.cert-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(255,165,0,0.07);transition:width 0.35s ease;}
+.cert-item:hover::before{width:100%;}
+.cert-item:last-child{margin-bottom:0;}
+.cert-item:hover{border-color:rgba(255,165,0,0.45);transform:translateX(4px);box-shadow:-4px 0 14px rgba(255,100,0,0.15);}
+.cert-item>*{position:relative;z-index:1;}
+.cert-ico{width:34px;height:34px;flex-shrink:0;background:rgba(200,30,0,0.12);border:1px solid rgba(200,30,0,0.3);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:15px;}
+.cert-name{font-family:'Exo 2',sans-serif;font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;}
+.cert-issuer{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--gold-dim);}
+.cert-year{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-dim);}
+
+/* ── SOFT SKILLS ── */
+.soft-wrap{display:flex;flex-wrap:wrap;gap:10px;}
+.soft-card{flex:1;min-width:110px;padding:14px;background:rgba(180,30,0,0.06);border:1px solid rgba(200,60,0,0.2);border-radius:2px;text-align:center;transition:all 0.35s cubic-bezier(0.34,1.56,0.64,1);cursor:default;position:relative;overflow:hidden;}
+.soft-card::before{content:'';position:absolute;bottom:-100%;left:0;right:0;height:100%;background:linear-gradient(0deg,rgba(255,165,0,0.07),transparent);transition:bottom 0.35s ease;}
+.soft-card:hover::before{bottom:0;}
+.soft-card:hover{background:rgba(255,100,0,0.1);border-color:var(--gold);transform:translateY(-5px) scale(1.04);box-shadow:0 10px 24px rgba(255,100,0,0.15),0 0 0 1px rgba(255,165,0,0.2);}
+.soft-ico{font-size:20px;margin-bottom:6px;display:block;transition:transform 0.3s;}
+.soft-card:hover .soft-ico{transform:scale(1.3) rotate(-5deg);}
+.soft-name{font-family:'Michroma',sans-serif;font-size:9px;color:var(--gold);letter-spacing:1px;}
+
+/* SUMMARY CONTENT */
+.summary{font-size:13px;line-height:1.85;color:var(--text-dim);}
+
+/* ── ARC REACTOR WATERMARK ── */
+.arc-watermark{position:fixed;bottom:16px;right:16px;z-index:3;width:40px;height:40px;pointer-events:none;opacity:0.15;}
+.arc-wm-outer{width:40px;height:40px;border-radius:50%;border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;animation:spinRing 10s linear infinite;}
+.arc-wm-inner{width:24px;height:24px;border-radius:50%;border:1px solid var(--red);display:flex;align-items:center;justify-content:center;animation:spinRing 6s linear infinite reverse;}
+.arc-wm-core{width:10px;height:10px;border-radius:50%;background:var(--arc);box-shadow:0 0 8px var(--arc);}
+
+/* ── PRINT BUTTON ── */
+.print-wrap{padding:16px 28px 20px;text-align:center;flex-shrink:0;border-top:1px solid rgba(255,165,0,0.1);background:var(--bg2);}
+.print-btn{display:inline-flex;align-items:center;gap:10px;padding:10px 32px;background:transparent;border:1px solid var(--gold);font-family:'Michroma',sans-serif;font-size:11px;font-weight:400;color:var(--gold);letter-spacing:4px;cursor:pointer;text-transform:uppercase;transition:all 0.35s ease;position:relative;overflow:hidden;border-radius:1px;}
+.print-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--red),var(--gold));transform:translateX(-100%);transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);z-index:0;}
+.print-btn:hover::before{transform:translateX(0);}
+.print-btn:hover{color:#000;box-shadow:0 0 40px rgba(255,165,0,0.5),0 0 80px rgba(200,30,0,0.25);}
+.print-btn span{position:relative;z-index:1;}
+
+/* PRINT */
+@media print{
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+  body{background:#fff!important;color:#1a0808!important;height:auto;overflow:visible;}
+  #boot,.bg-layers,.sweep,.hud-corner,.hud-topbar,.arc-watermark,.scanline,.nav-tabs,.print-wrap{display:none!important;}
+  .landscape{display:block!important;overflow:visible;}
+  .sidebar{width:100%!important;border:none!important;background:#fff!important;overflow:visible;}
+  .main{overflow:visible!important;padding:10px!important;opacity:1!important;}
+  .content-panel{display:block!important;}
+  .card{background:#fff8f5!important;border:1px solid #ddc0b0!important;padding:12px!important;border-radius:2px!important;break-inside:avoid;opacity:1!important;transform:none!important;animation:none!important;}
+  .card::before{background:#cc3300!important;}
+  .sh-title{color:#8b2500!important;}
+  .summary{color:#333!important;font-size:9pt!important;}
+  .sg-title{color:#8b2500!important;}
+  .tag{background:rgba(139,37,0,0.06)!important;border-color:rgba(139,37,0,0.2)!important;color:#7a2000!important;font-size:8pt!important;}
+  .exp-role{color:#5a1500!important;}
+  .exp-co{color:#8b2500!important;}
+  .exp-dt{color:#555!important;}
+  .exp-pts li{color:#444!important;}
+  .exp-pts li::before{color:#cc3300!important;}
+  .edu-item{background:rgba(139,37,0,0.04)!important;border-color:rgba(139,37,0,0.18)!important;}
+  .edu-deg{color:#5a1500!important;}
+  .edu-inst{color:#8b2500!important;}
+  .edu-cgpa{color:#8b2500!important;}
+  .cert-item{background:rgba(139,37,0,0.04)!important;border-color:rgba(139,37,0,0.18)!important;}
+  .cert-name{color:#1a0808!important;}
+  .cert-issuer{color:#8b2500!important;}
+  .soft-card{background:rgba(139,37,0,0.04)!important;border-color:rgba(139,37,0,0.18)!important;}
+  .soft-name{color:#8b2500!important;}
+  .arc-ring,.arc-glow-ring,.arc-core{display:none!important;}
+  .photo-frame{box-shadow:none!important;border-color:#cc3300!important;}
+  .name{color:#cc3300!important;-webkit-text-fill-color:#cc3300!important;}
+  .role-badge{border-color:rgba(204,51,0,0.5)!important;color:#cc3300!important;}
+  .status-bar{display:none!important;}
+}
+@page{margin:8mm;size:A4 landscape;}
+</style>
+</head>
+<body>
+
+<!-- BOOT SCREEN -->
+<div id="boot">
+  <div class="boot-logo">S.H.A.R.U.K.H</div>
+  <div class="boot-sub">Creative IT & Technology Specialist</div>
+  <div class="boot-bar-wrap"><div class="boot-bar"></div></div>
+  <div class="boot-lines">
+    <div class="boot-line">&gt; LOADING DIGITAL EXPERIENCE...</div>
+    <div class="boot-line">&gt; LOADING PROFILE: SHARUKH.K.SHAHUL</div>
+    <div class="boot-line">&gt; THREAT ASSESSMENT: NONE DETECTED</div>
+    <div class="boot-line">&gt; SYSTEMS ONLINE. WELCOME.</div>
+  </div>
+</div>
+
+<!-- BACKGROUND -->
+<div class="bg-layers">
+  <div class="bg-hex"></div>
+  <div class="bg-glow1"></div>
+  <div class="bg-glow2"></div>
+</div>
+<div class="scanline"></div>
+<div class="sweep"></div>
+
+<!-- HUD CORNERS -->
+<div class="hud-corner tl" data-label="SYS.01"></div>
+<div class="hud-corner tr" data-label="NET.OK"></div>
+<div class="hud-corner bl" data-label="SEC.ON"></div>
+<div class="hud-corner br" data-label="v4.7.2"></div>
+
+<!-- ARC REACTOR WATERMARK -->
+<div class="arc-watermark">
+  <div class="arc-wm-outer">
+    <div class="arc-wm-inner">
+      <div class="arc-wm-core"></div>
+    </div>
+  </div>
+</div>
+
+<!-- HUD TOP BAR -->
+<div class="hud-topbar">
+  <div class="hud-topbar-left">
+    <div class="hud-indicator"><div class="hud-dot"></div><span>NETWORK STABLE. . .</span></div>
+    <span>System: Ready</span>
+  </div>
+  <div class="hud-center">Tech Specialist</div>
+  <div class="hud-topbar-right">
+    <span id="hud-time">--:--:--</span>
+    <span>ACCESS GRANTED</span>
+  </div>
+</div>
+
+<!-- LANDSCAPE LAYOUT -->
+<div class="landscape">
+
+  <!-- LEFT SIDEBAR -->
+  <div class="sidebar">
+
+    <!-- PROFILE -->
+    <div class="profile-sec">
+      <div class="arc-container">
+        <div class="arc-ring r3"></div>
+        <div class="arc-ring r1"></div>
+        <div class="arc-ring r2"></div>
+        <div class="arc-glow-ring"></div>
+        <div class="photo-frame">
+          <img id="profile-photo"
+            src="picture.jpg"
+            alt="Profile Photo">
+          <div class="photo-overlay">
+            <div class="photo-overlay-icon">⚙</div>
+            <div>IDENTIFIED</div>
+          </div>
+        </div>
+        <div class="arc-core"></div>
+      </div>
+
+      <div class="sys-label">// PERSONNEL FILE · CLASSIFIED</div>
+      <div class="name">SHARUKH K. SHAHUL</div>
+      <div class="role-badge">IT SUPPORT &amp; HELPDESK SPECIALIST</div>
+      <div class="status-bar">
+        <div class="hud-dot"></div>
+        <span>ACTIVELY SEEKING DEPLOYMENT</span>
+      </div>
+    </div>
+
+    <!-- CONTACTS -->
+    <div class="contacts-sec">
+      <div class="contact-item"><span class="ci">📍</span>Kerala, Pathanamthitta</div>
+      <div class="contact-item"><span class="ci">📞</span>+91 7306012298</div>
+      <div class="contact-item"><span class="ci">✉</span>sharukhkshahul@gmail.com</div>
+      <div class="contact-item"><span class="ci">in</span>linkedin.com/in/sharukh-shahul-574526198</div>
+    </div>
+
+    <!-- NAV TABS -->
+    <nav class="nav-tabs">
+      <div class="nav-tab active" data-panel="summary" onclick="switchPanel(this,'summary')">
+        <span class="nav-tab-ico">📋</span>MISSION BRIEFING
+      </div>
+      <div class="nav-tab" data-panel="skills" onclick="switchPanel(this,'skills')">
+        <span class="nav-tab-ico">⚙️</span>TECH ARSENAL
+      </div>
+      <div class="nav-tab" data-panel="experience" onclick="switchPanel(this,'experience')">
+        <span class="nav-tab-ico">💼</span>FIELD OPERATIONS
+      </div>
+      <div class="nav-tab" data-panel="education" onclick="switchPanel(this,'education')">
+        <span class="nav-tab-ico">🎓</span>TRAINING &amp; CREDENTIALS
+      </div>
+      <div class="nav-tab" data-panel="certs" onclick="switchPanel(this,'certs')">
+        <span class="nav-tab-ico">📜</span>CLEARANCES &amp; CERTS
+      </div>
+    </nav>
+
+    <!-- PRINT BUTTON -->
+    <div class="print-wrap">
+      <button class="print-btn" onclick="window.print()">
+        <span>🖨&nbsp; EXPORT DOSSIER</span>
+      </button>
+    </div>
+
+  </div><!-- /sidebar -->
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+
+    <!-- SUMMARY PANEL -->
+    <div class="content-panel active" id="panel-summary">
+      <div class="card">
+        <div class="c-tl"></div><div class="c-br"></div>
+        <div class="sh">
+          <div class="sh-icon">📋</div>
+          <div class="sh-title">Mission Briefing</div>
+          <div class="sh-line"></div>
+        </div>
+        <p class="summary">Detail-oriented IT Support Professional with hands-on experience in computer hardware, operating systems, and software support within business environments. Skilled in installing, configuring, and maintaining desktops, laptops, printers, and peripherals, with solid experience supporting Windows systems and basic knowledge of Linux. Proficient in diagnosing and resolving hardware faults, software issues, application errors, and system performance problems, ensuring minimal downtime and smooth daily operations. Experienced in end-user technical support, system updates, antivirus and basic cybersecurity practices, IT documentation, and asset management. Seeking an IT Support / Technical Support / Helpdesk role.</p>
+      </div>
+    </div>
+
+    <!-- SKILLS PANEL -->
+    <div class="content-panel" id="panel-skills">
+      <div class="two-col">
+        <div class="card">
+          <div class="c-tl"></div><div class="c-br"></div>
+          <div class="sh">
+            <div class="sh-icon">⚙️</div>
+            <div class="sh-title">Tech Arsenal</div>
+            <div class="sh-line"></div>
+          </div>
+          <div class="skill-group">
+            <div class="sg-title">// SYSTEMS &amp; HARDWARE</div>
+            <div class="tags">
+              <span class="tag">Desktop Troubleshooting</span>
+              <span class="tag">Laptop Support</span>
+              <span class="tag">Windows 10/11</span>
+              <span class="tag">Basic Linux</span>
+              <span class="tag">Peripheral Support</span>
+            </div>
+          </div>
+          <div class="skill-group">
+            <div class="sg-title">// SOFTWARE &amp; SUPPORT</div>
+            <div class="tags">
+              <span class="tag">Application Support</span>
+              <span class="tag">Mobile Devices</span>
+              <span class="tag">System Maintenance</span>
+              <span class="tag">Virtualization</span>
+            </div>
+          </div>
+          <div class="skill-group">
+            <div class="sg-title">// INFRASTRUCTURE &amp; SECURITY</div>
+            <div class="tags">
+              <span class="tag">IT Infrastructure</span>
+              <span class="tag">Cybersecurity Basics</span>
+              <span class="tag">IT Documentation</span>
+              <span class="tag">Asset Management</span>
+              <span class="tag">IT Compliance</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="c-tl"></div><div class="c-br"></div>
+          <div class="sh">
+            <div class="sh-icon">🤝</div>
+            <div class="sh-title">Combat Capabilities</div>
+            <div class="sh-line"></div>
+          </div>
+          <div class="soft-wrap">
+            <div class="soft-card">
+              <span class="soft-ico">🧩</span>
+              <div class="soft-name">Analytical<br>Problem Solving</div>
+            </div>
+            <div class="soft-card">
+              <span class="soft-ico">💬</span>
+              <div class="soft-name">Effective<br>Communication</div>
+            </div>
+            <div class="soft-card">
+              <span class="soft-ico">🔄</span>
+              <div class="soft-name">Adaptability</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXPERIENCE PANEL -->
+    <div class="content-panel" id="panel-experience">
+      <div class="card">
+        <div class="c-tl"></div><div class="c-br"></div>
+        <div class="sh">
+          <div class="sh-icon">💼</div>
+          <div class="sh-title">Field Operations</div>
+          <div class="sh-line"></div>
+        </div>
+
+        <div class="exp-item">
+          <div class="exp-role">IT Executive</div>
+          <div class="exp-meta">
+            <span class="exp-co">Fortune Group Pvt. Ltd., Kerala</span>
+            <span class="exp-dt">Jan 2025 – Present</span>
+            <span class="exp-active">ACTIVE</span>
+          </div>
+          <ul class="exp-pts">
+            <li>Delivered day-to-day IT support for desktops, laptops, printers, and office peripherals, ensuring uninterrupted business operations.</li>
+            <li>Diagnosed and resolved hardware, software, and OS issues to reduce downtime and improve user productivity.</li>
+            <li>Performed routine system maintenance including updates, patches, and basic security checks for system stability.</li>
+            <li>Supported IT infrastructure management, assisting in monitoring system performance and availability.</li>
+            <li>Maintained accurate IT documentation, asset inventories, and support records per organizational standards.</li>
+            <li>Collaborated cross-departmentally to identify, escalate, and resolve technical issues within defined timelines.</li>
+          </ul>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="exp-item" style="margin-top:14px;">
+          <div class="exp-role">IT Support Executive</div>
+          <div class="exp-meta">
+            <span class="exp-co">Akshaya e-Centre, Pathanamthitta</span>
+            <span class="exp-dt">Prior Deployment</span>
+          </div>
+          <ul class="exp-pts">
+            <li>Provided technical and administrative support for government portals and public digital services, ensuring accurate processing of citizen applications.</li>
+            <li>Managed administrative documentation including data entry, document verification, scanning, indexing, and secure digital uploading per government standards.</li>
+            <li>Coordinated with government helpdesks and portals to resolve application errors, system issues, and procedural discrepancies.</li>
+            <li>Maintained strict confidentiality and data integrity while handling sensitive personal and official records.</li>
+            <li>Assisted citizens and staff with basic computer operations, improving service efficiency and user experience.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- EDUCATION PANEL -->
+    <div class="content-panel" id="panel-education">
+      <div class="card">
+        <div class="c-tl"></div><div class="c-br"></div>
+        <div class="sh">
+          <div class="sh-icon">🎓</div>
+          <div class="sh-title">Training &amp; Credentials</div>
+          <div class="sh-line"></div>
+        </div>
+        <div class="two-col">
+          <div class="edu-item">
+            <div class="edu-deg">Bachelor of Computer Applications (BCA)</div>
+            <div class="edu-inst">Mahatma Gandhi University</div>
+            <div class="edu-cgpa" id="cgpa1">CGPA: 6.4</div>
+            <div class="edu-tags">
+              <span class="edu-tag">Cloud Computing</span>
+              <span class="edu-tag">Computer Networking</span>
+              <span class="edu-tag">TCP/IP · LAN/WAN</span>
+              <span class="edu-tag">Operating Systems</span>
+              <span class="edu-tag">Software Dev</span>
+              <span class="edu-tag">Data Structures</span>
+              <span class="edu-tag">Enterprise IT</span>
+            </div>
+          </div>
+          <div class="edu-item">
+            <div class="edu-deg">Higher Secondary – Civil Construction Technology</div>
+            <div class="edu-inst">M.P.V.H.S.S, Pathanamthitta</div>
+            <div class="edu-cgpa" id="cgpa2">CGPA: 6.0</div>
+            <div class="edu-tags">
+              <span class="edu-tag">Technical Drafting</span>
+              <span class="edu-tag">Surveying Basics</span>
+              <span class="edu-tag">Construction Materials</span>
+              <span class="edu-tag">Estimation</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CERTS PANEL -->
+    <div class="content-panel" id="panel-certs">
+      <div class="two-col">
+        <div class="card">
+          <div class="c-tl"></div><div class="c-br"></div>
+          <div class="sh">
+            <div class="sh-icon">📜</div>
+            <div class="sh-title">Clearances &amp; Certs</div>
+            <div class="sh-line"></div>
+          </div>
+          <div class="cert-item">
+            <div class="cert-ico">🤖</div>
+            <div>
+              <div class="cert-name">Diploma in Artificial Intelligence (DAI)</div>
+              <div class="cert-issuer">National Youth Programme, New Delhi</div>
+              <div class="cert-year">2025</div>
+            </div>
+          </div>
+          <div class="cert-item">
+            <div class="cert-ico">🖥</div>
+            <div>
+              <div class="cert-name">AutoCAD 2D</div>
+              <div class="cert-issuer">Autodesk ATC · Nexus Technical Solutions</div>
+            </div>
+          </div>
+          <div class="cert-item">
+            <div class="cert-ico">🛰</div>
+            <div>
+              <div class="cert-name">Total Station &amp; Satellite Survey</div>
+              <div class="cert-issuer">Carmel Alumni Co-op Society</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="c-tl"></div><div class="c-br"></div>
+          <div class="sh">
+            <div class="sh-icon">🤝</div>
+            <div class="sh-title">Combat Capabilities</div>
+            <div class="sh-line"></div>
+          </div>
+          <div class="soft-wrap">
+            <div class="soft-card">
+              <span class="soft-ico">🧩</span>
+              <div class="soft-name">Analytical<br>Problem Solving</div>
+            </div>
+            <div class="soft-card">
+              <span class="soft-ico">💬</span>
+              <div class="soft-name">Effective<br>Communication</div>
+            </div>
+            <div class="soft-card">
+              <span class="soft-ico">🔄</span>
+              <div class="soft-name">Adaptability</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /landscape -->
+
+<script>
+/* HUD CLOCK */
+function tick(){
+  const t=new Date();
+  document.getElementById('hud-time').textContent=t.toLocaleTimeString('en-GB',{hour12:false});
+}
+tick();setInterval(tick,1000);
+
+
+/* PANEL SWITCHING */
+function switchPanel(tab, panelId){
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.content-panel').forEach(p=>p.classList.remove('active'));
+  tab.classList.add('active');
+  const panel = document.getElementById('panel-'+panelId);
+  if(panel) panel.classList.add('active');
+}
+
+/* SKILL TAG HOVER */
+document.querySelectorAll('.tag').forEach((t,i)=>{
+  t.addEventListener('mousemove',e=>{
+    const r=t.getBoundingClientRect();
+    t.style.setProperty('--mx',((e.clientX-r.left)/r.width*100)+'%');
+    t.style.setProperty('--my',((e.clientY-r.top)/r.height*100)+'%');
+  });
+});
+
+/* CGPA COUNTER */
+function animCgpa(el,target){
+  let v=0;const step=target/30;
+  const iv=setInterval(()=>{
+    v=Math.min(v+step,target);
+    el.textContent='CGPA: '+v.toFixed(1);
+    if(v>=target)clearInterval(iv);
+  },50);
+}
+setTimeout(()=>{
+  animCgpa(document.getElementById('cgpa1'),6.4);
+  animCgpa(document.getElementById('cgpa2'),6.0);
+},4000);
+
+/* PARTICLES */
+const pbg=document.querySelector('.bg-layers');
+for(let i=0;i<20;i++){
+  const p=document.createElement('div');
+  const sz=Math.random()>0.7?3:2;
+  Object.assign(p.style,{
+    position:'absolute',width:sz+'px',height:sz+'px',borderRadius:'50%',
+    background:Math.random()>0.5?'rgba(255,165,0,0.6)':'rgba(204,30,0,0.6)',
+    left:Math.random()*100+'%',top:'100%',
+    animation:`pfloat ${10+Math.random()*12}s linear ${Math.random()*8}s infinite`,
+    opacity:'0',pointerEvents:'none',zIndex:'0',
+    boxShadow:Math.random()>0.5?'0 0 4px rgba(255,165,0,0.5)':'0 0 4px rgba(255,60,0,0.5)',
+  });
+  pbg.appendChild(p);
+}
+const ps=document.createElement('style');
+ps.textContent=`@keyframes pfloat{0%{transform:translateY(0);opacity:0;}5%{opacity:0.7;}90%{opacity:0.2;}100%{transform:translateY(-110vh) translateX(${Math.random()>0.5?'+':'-'}${Math.floor(Math.random()*60)}px);opacity:0;}}`;
+document.head.appendChild(ps);
+
+/* GLITCH TICKER */
+const glitchEls=document.querySelectorAll('.sh-title');
+setInterval(()=>{
+  const el=glitchEls[Math.floor(Math.random()*glitchEls.length)];
+  el.style.textShadow='2px 0 rgba(204,17,17,0.8), -2px 0 rgba(255,165,0,0.8)';
+  el.style.transform='skewX(-2deg)';
+  setTimeout(()=>{el.style.textShadow='';el.style.transform='';},80);
+},3000);
+</script>
+</body>
+</html>
